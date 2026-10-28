@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RevenueLens AI – Marketing-to-Revenue Attribution</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f3ff;--card:#fff;--tx:#1b1740;--mut:#6b6894;--bd:#e3e0fa;--p:#7c3aed;--c:#06b6d4;--g:#10b981;--o:#f59e0b;--r:#ef4444;--pk:#ec4899;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0b24;--card:#17133a;--tx:#f1efff;--mut:#a39fd0;--bd:#2a2560}}
+:root[data-theme="dark"]{--bg:#0d0b24;--card:#17133a;--tx:#f1efff;--mut:#a39fd0;--bd:#2a2560}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;font-size:14px}
+.wrap{max-width:1280px;margin:auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:20px 24px;border-radius:20px;background:linear-gradient(120deg,#7c3aed,#ec4899 55%,#f59e0b);color:#fff}
+header h1{margin:0;font-size:24px}header p{margin:4px 0 0;opacity:.92}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 13px;border-radius:99px;cursor:pointer;font-size:13px}
+.chip.on{background:linear-gradient(90deg,var(--p),var(--pk));color:#fff;border-color:transparent}
+.grid{display:grid;gap:14px}.k{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.two{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;min-width:0}
+.card h3{margin:0 0 4px;font-size:15px}.sub{color:var(--mut);font-size:12px;margin-bottom:12px}
+.kpi{position:relative;overflow:hidden}.kpi:before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--a)}
+.kpi .v{font-size:26px;font-weight:800;margin:4px 0}.kpi .l{color:var(--mut);font-size:12px}.kpi .d{font-size:12px;font-weight:600}
+.up{color:var(--g)}.dn{color:var(--r)}
+.fr{display:grid;grid-template-columns:90px 1fr 90px;gap:10px;align-items:center;margin:4px 0}
+.fb{height:30px;border-radius:8px;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;font-size:12px;transition:width .6s}
+.leak{margin:0 0 0 100px;font-size:11px;color:var(--r);font-weight:700;padding:1px 0}
+.sc{overflow-x:auto}table{border-collapse:separate;border-spacing:3px;width:100%;font-size:12px}th{color:var(--mut);font-weight:600;text-align:center;padding:4px}td{text-align:center;padding:9px 4px;border-radius:8px;font-weight:700}td.n{text-align:left;background:none;font-weight:600}
+.canvas{position:relative;height:280px}
+.chat{display:flex;flex-direction:column;height:420px}.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.m{padding:10px 13px;border-radius:14px;max-width:92%;line-height:1.5}.m.a{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(6,182,212,.16));border:1px solid var(--bd)}.m.u{align-self:flex-end;background:linear-gradient(90deg,var(--p),var(--pk));color:#fff}
+.in{display:flex;gap:8px;margin-top:10px}.in input{flex:1;padding:11px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+.btn{border:0;border-radius:12px;padding:0 18px;background:linear-gradient(90deg,var(--p),var(--c));color:#fff;font-weight:700;cursor:pointer}
+.sl{margin:10px 0}.sl label{display:flex;justify-content:space-between;font-size:13px}.sl input{width:100%;accent-color:var(--p)}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.res div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}.res b{display:block;font-size:19px}
+.tg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ins{border-left:4px solid var(--o);padding:8px 12px;margin:8px 0;background:var(--bg);border-radius:0 10px 10px 0}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;background:var(--r);color:#fff}
+</style></head><body><div class="wrap">
+<header><div><h1>🔎 RevenueLens AI</h1><p>Marketing-to-Revenue Attribution Agent · Campaign → Lead → MQL → SQL → Opportunity → Revenue · FY26 (Apr–Sep, assumed data)</p></div><div><span class="pill" style="background:#fff;color:#7c3aed">● AI Agent Live</span></div></header>
+<div class="chips" id="chips"></div>
+<div class="grid k" id="kpis"></div>
+<div class="grid two" style="margin-top:14px">
+ <div class="card"><h3>🧭 Customer Journey Funnel</h3><div class="sub">Where value is lost vs. benchmark conversion rates</div><div id="funnel"></div></div>
+ <div class="card"><h3>📉 The Core Problem: Leads ↑ but Revenue →</h3><div class="sub">Monthly leads vs. closed revenue vs. spend</div><div class="canvas"><canvas id="trend"></canvas></div></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+ <div class="card"><h3>🔥 Leakage Heatmap (stage conversion vs benchmark)</h3><div class="sub">Green = at/above benchmark · Amber = slightly below · Red = major leak</div><div class="sc"><table id="heat"></table></div></div>
+ <div class="card"><h3>💸 Revenue Lost to Funnel Leakage</h3><div class="sub">Estimated $ if each channel hit benchmark rates</div><div class="canvas"><canvas id="loss"></canvas></div></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+ <div class="card"><h3>🧩 Attribution Models</h3><div class="sub">Revenue credit by channel depends on the model — compare to see hidden winners</div><div class="tg" id="mt"></div><div class="canvas"><canvas id="attr"></canvas></div></div>
+ <div class="card"><h3>⚖️ ROAS vs CAC by Channel</h3><div class="sub">Efficiency: higher ROAS and lower CAC is better</div><div class="canvas"><canvas id="eff"></canvas></div></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+ <div class="card chat"><h3>🤖 Ask the Attribution Agent</h3><div class="sub">Natural-language analysis over the funnel data</div>
+  <div class="tg" id="sug"></div><div class="msgs" id="msgs"></div>
+  <div class="in"><input id="q" placeholder="e.g. Where are we losing the most revenue?"><button class="btn" id="go">Ask</button></div></div>
+ <div class="card"><h3>🎛️ What-If Simulator</h3><div class="sub">Test the agent’s recommendations before spending a dollar</div>
+  <div class="sl"><label><span>Shift budget from Meta + Affiliates to LinkedIn, Webinars, SEO</span><b id="s1v">0%</b></label><input type="range" id="s1" min="0" max="60" value="0"></div>
+  <div class="sl"><label><span>Improve MQL→SQL rate (sales-marketing alignment)</span><b id="s2v">+0 pts</b></label><input type="range" id="s2" min="0" max="15" value="0"></div>
+  <div class="sl"><label><span>Improve Opp→Won rate (sales enablement)</span><b id="s3v">+0 pts</b></label><input type="range" id="s3" min="0" max="12" value="0"></div>
+  <div class="res"><div><span class="sub">Projected revenue</span><b id="r1"></b></div><div><span class="sub">Uplift</span><b id="r2" class="up"></b></div><div><span class="sub">Blended ROAS</span><b id="r3"></b></div></div>
+  <div class="ins" id="simnote"></div></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>🧠 Auto-Generated Agent Insights</h3><div id="ins"></div></div>
+</div>
+<script>
+const C=[
+{n:"Google Ads",sp:420,imp:4200,clk:61000,leads:9800,mql:3400,sql:1150,opp:520,won:190,deal:8200,col:"#7c3aed"},
+{n:"Meta Ads",sp:380,imp:9800,clk:120000,leads:14200,mql:2100,sql:420,opp:150,won:48,deal:6000,col:"#ec4899"},
+{n:"LinkedIn",sp:310,imp:1900,clk:22000,leads:3100,mql:1700,sql:820,opp:430,won:175,deal:14500,col:"#06b6d4"},
+{n:"Email",sp:60,imp:900,clk:38000,leads:5200,mql:2600,sql:980,opp:470,won:210,deal:7000,col:"#10b981"},
+{n:"SEO",sp:120,imp:3800,clk:52000,leads:6800,mql:3100,sql:1250,opp:610,won:240,deal:7800,col:"#f59e0b"},
+{n:"Webinars",sp:150,imp:300,clk:6500,leads:2400,mql:1500,sql:760,opp:400,won:160,deal:11000,col:"#3b82f6"},
+{n:"Affiliates",sp:140,imp:3100,clk:41000,leads:4900,mql:900,sql:210,opp:70,won:22,deal:5000,col:"#ef4444"}];
+const B=[.40,.40,.50,.35],SN=["Lead→MQL","MQL→SQL","SQL→Opp","Opp→Won"],ST=["Impressions","Clicks","Leads","MQL","SQL","Opportunity","Won"];
+C.forEach(c=>{c.rev=c.won*c.deal;c.roas=c.rev/(c.sp*1000);c.cac=c.sp*1000/c.won;c.r=[c.mql/c.leads,c.sql/c.mql,c.opp/c.sql,c.won/c.opp];
+const [a,b,d,e]=c.r;c.lk=[Math.max(0,B[0]-a)*c.leads*b*d*e*c.deal,Math.max(0,B[1]-b)*c.mql*d*e*c.deal,Math.max(0,B[2]-d)*c.sql*e*c.deal,Math.max(0,B[3]-e)*c.opp*c.deal];c.loss=c.lk.reduce((x,y)=>x+y,0)});
+const S=(f,L=C)=>L.reduce((s,c)=>s+c[f],0),$=q=>document.querySelector(q);
+const M=v=>v>=1e6?"$"+(v/1e6).toFixed(2)+"M":"$"+Math.round(v/1e3)+"K",P=v=>(v*100).toFixed(1)+"%",N=v=>Math.round(v).toLocaleString();
+const mon=["Apr","May","Jun","Jul","Aug","Sep"],ML=[5200,5900,6800,7600,8300,9200],MR=[1.05,1.08,1.07,1.1,1.09,1.12],MS=[190,210,240,270,300,330];
+const sh=[[1.3,1.9,.8,.4,1.2,.6,1.5],[1,1,1,1,1,1,1]];let fs=[1.3,1.9,.9,.45,1.3,.6,1.6];
+function share(m){const base=C.map(c=>c.rev);let w=m==="last"?base:m==="first"?base.map((v,i)=>v*fs[i]):m==="linear"?base.map((v,i)=>v*(1+fs[i])/2):base.map((v,i)=>v*(.4*fs[i]+.4+.2*(i==2||i==5||i==3?1.3:.9)));const t=S("rev"),s=w.reduce((a,b)=>a+b,0);return w.map(v=>v/s*t)}
+let sel=-1,model="last",charts={};
+const L=()=>sel<0?C:[C[sel]];
+const tk=()=>getComputedStyle(document.documentElement).getPropertyValue("--mut").trim();
+function chips(){$("#chips").innerHTML=[{n:"All Channels"},...C].map((c,i)=>`<button class="chip ${sel===i-1?"on":""}" data-i="${i-1}">${c.n}</button>`).join("");document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{sel=+b.dataset.i;render()})}
+function kpis(){const l=L(),sp=S("sp",l)*1000,rev=S("rev",l),ld=S("leads",l),w=S("won",l);
+const k=[["Total Leads",N(ld),"▲ +77% since Apr","up","#7c3aed"],["Revenue",M(rev),"▲ only +7% since Apr","dn","#10b981"],["Marketing Spend",M(sp),"▲ +74% since Apr","dn","#f59e0b"],["Lead→Customer",P(w/ld),"vs 1.8% target","dn","#ec4899"],["Blended ROAS",(rev/sp).toFixed(2)+"x","target 5.0x","dn","#06b6d4"],["CAC",M(sp/w).replace("K","K"),"per won deal","up","#3b82f6"]];
+$("#kpis").innerHTML=k.map(x=>`<div class="card kpi" style="--a:${x[4]}"><div class="l">${x[0]}</div><div class="v">${x[1]}</div><div class="d ${x[3]}">${x[2]}</div></div>`).join("")}
+function funnel(){const l=L(),v=[S("imp",l)*1000,S("clk",l),S("leads",l),S("mql",l),S("sql",l),S("opp",l),S("won",l)],cols=["#7c3aed","#8b5cf6","#06b6d4","#10b981","#f59e0b","#ec4899","#ef4444"];let h="";const mx=Math.log10(v[0]);
+v.forEach((x,i)=>{if(i>1){const r=x/v[i-1],bm=B[i-3],bad=r<bm;h+=`<div class="leak" style="color:${bad?"var(--r)":"var(--g)"}">${bad?"▼":"▲"} ${SN[i-3]} ${P(r)} (benchmark ${P(bm)}) ${bad?"· LEAK":""}</div>`}
+h+=`<div class="fr"><span>${ST[i]}</span><div class="fb" style="width:${Math.max(8,Math.log10(x)/mx*100)}%;background:${cols[i]}">${N(x)}</div><span></span></div>`});$("#funnel").innerHTML=h}
+function mk(id,cfg){if(charts[id])charts[id].destroy();Chart.defaults.color=tk();charts[id]=new Chart($("#"+id),cfg)}
+const opt=(x={})=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10}}},...x});
+function trend(){mk("trend",{data:{labels:mon,datasets:[{type:"line",label:"Leads",data:ML,borderColor:"#7c3aed",backgroundColor:"#7c3aed",tension:.35,yAxisID:"y",borderWidth:3},{type:"line",label:"Spend ($K)",data:MS,borderColor:"#f59e0b",tension:.35,yAxisID:"y2",borderDash:[5,4]},{type:"bar",label:"Revenue ($M)",data:MR,backgroundColor:"rgba(16,185,129,.55)",borderRadius:8,yAxisID:"y1"}]},options:opt({scales:{y:{position:"left",grid:{color:"rgba(128,128,160,.15)"}},y1:{position:"right",min:0,max:2,grid:{display:false}},y2:{display:false}}})})}
+function heat(){const col=(r,b)=>{const q=r/b;return q>=1?"rgba(16,185,129,.8)":q>=.7?"rgba(245,158,11,.8)":"rgba(239,68,68,.85)"};
+$("#heat").innerHTML=`<tr><th></th>${SN.map(s=>`<th>${s}</th>`).join("")}<th>Leak $</th></tr>`+C.map((c,i)=>`<tr style="opacity:${sel<0||sel===i?1:.35}"><td class="n">${c.n}</td>${c.r.map((r,j)=>`<td style="background:${col(r,B[j])};color:#fff">${P(r)}</td>`).join("")}<td style="background:var(--bg)">${M(c.loss)}</td></tr>`).join("")+`<tr><td class="n">Benchmark</td>${B.map(b=>`<td style="background:var(--bg)">${P(b)}</td>`).join("")}<td></td></tr>`}
+function loss(){mk("loss",{type:"bar",data:{labels:SN,datasets:C.map((c,i)=>({label:c.n,data:c.lk.map(x=>Math.round(x/1000)),backgroundColor:c.col,borderRadius:4,hidden:sel>=0&&sel!==i}))},options:opt({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,title:{display:true,text:"$K lost"},grid:{color:"rgba(128,128,160,.15)"}}}})})}
+function attr(){const s=share(model);mk("attr",{type:"bar",data:{labels:C.map(c=>c.n),datasets:[{label:"Revenue credit ($K)",data:s.map(v=>Math.round(v/1000)),backgroundColor:C.map(c=>c.col),borderRadius:8}]},options:opt({indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(128,128,160,.15)"}},y:{grid:{display:false}}}})})}
+function eff(){mk("eff",{type:"bar",data:{labels:C.map(c=>c.n),datasets:[{label:"ROAS (x)",data:C.map(c=>+c.roas.toFixed(2)),backgroundColor:C.map(c=>c.col),borderRadius:8,yAxisID:"y"},{type:"line",label:"CAC ($)",data:C.map(c=>Math.round(c.cac)),borderColor:"#ef4444",pointBackgroundColor:"#ef4444",yAxisID:"y1",tension:.3}]},options:opt({scales:{y:{grid:{color:"rgba(128,128,160,.15)"}},y1:{position:"right",grid:{display:false}}}})})}
+function mt(){const ms=[["last","Last-touch"],["first","First-touch"],["linear","Linear"],["pos","Position-based"]];$("#mt").innerHTML=ms.map(m=>`<button class="chip ${model===m[0]?"on":""}" data-m="${m[0]}">${m[1]}</button>`).join("");document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{model=b.dataset.m;mt();attr()})}
+function insights(){const wl=[...C].sort((a,b)=>b.loss-a.loss),tl=S("loss"),bst=[...C].sort((a,b)=>b.roas-a.roas)[0];
+const f=share("first"),l=share("last"),hid=C.map((c,i)=>[c.n,f[i]/l[i]]).sort((a,b)=>b[1]-a[1])[0];
+$("#ins").innerHTML=[`<b>Total estimated leakage: ${M(tl)}</b> (${P(tl/S("rev"))} of current revenue). The biggest leaker is <b>${wl[0].n}</b> (${M(wl[0].loss)}).`,`<b>Volume ≠ value:</b> Meta + Affiliates produce ${P((C[1].leads+C[6].leads)/S("leads"))} of leads but only ${P((C[1].rev+C[6].rev)/S("rev"))} of revenue while consuming ${P((C[1].sp+C[6].sp)/S("sp"))} of budget.`,`<b>Best performer:</b> ${bst.n} returns ${bst.roas.toFixed(1)}x ROAS. <b>${hid[0]}</b> is under-credited by last-touch (it earns ${hid[1].toFixed(1)}x more under first-touch) — don’t cut it blindly.`,`<b>Biggest stage bottleneck:</b> MQL→SQL. Marketing-qualified leads are not matching sales criteria — align lead scoring and SLAs.`].map(t=>`<div class="ins">${t}</div>`).join("")}
+function sim(){const s1=+$("#s1").value/100,s2=+$("#s2").value,s3=+$("#s3").value;$("#s1v").textContent=Math.round(s1*100)+"%";$("#s2v").textContent="+"+s2+" pts";$("#s3v").textContent="+"+s3+" pts";
+const low=[C[1],C[6]],hi=[C[2],C[5],C[4]],lsp=S("sp",low)*1000,lr=S("rev",low)/lsp,hr=S("rev",hi)/(S("sp",hi)*1000);
+let base=S("rev"),gain=lsp*s1*(hr*.65-lr);let f=0;C.forEach(c=>{f+=c.rev*((c.r[1]+s2/100)/c.r[1])*((c.r[3]+s3/100)/c.r[3])});
+const tot=f+gain,up=tot-base;$("#r1").textContent=M(tot);$("#r2").textContent="+"+M(up)+" ("+(up/base*100).toFixed(0)+"%)";$("#r3").textContent=(tot/(S("sp")*1000)).toFixed(2)+"x";
+$("#simnote").textContent=up<1?"Move the sliders to see projected impact. Budget shift assumes 35% diminishing returns on scaled channels.":`Same total spend of ${M(S("sp")*1000)}, ${M(up)} more revenue. Funnel fixes compound with budget moves.`}
+const ans={
+leak:()=>{const w=[...C].sort((a,b)=>b.loss-a.loss),st=SN.map((s,i)=>[s,S("lk".length?"loss":"loss",[]) ]);const t=SN.map((s,i)=>[s,C.reduce((a,c)=>a+c.lk[i],0)]).sort((a,b)=>b[1]-a[1]);return`Total leakage ≈ <b>${M(S("loss"))}</b>.<br>Worst stage: <b>${t[0][0]}</b> (${M(t[0][1])}), then ${t[1][0]} (${M(t[1][1])}).<br>Worst channels: ${w.slice(0,3).map(c=>`<b>${c.n}</b> ${M(c.loss)}`).join(", ")}.`},
+worst:()=>{const w=[...C].sort((a,b)=>a.roas-b.roas).slice(0,2);return w.map(c=>`<b>${c.n}</b>: ${c.roas.toFixed(2)}x ROAS, CAC $${N(c.cac)}, only ${P(c.won/c.leads)} of leads become customers.`).join("<br>")+"<br>Recommendation: tighten targeting, add lead-scoring gates and cut spend on low-intent audiences."},
+best:()=>{const b=[...C].sort((a,b)=>b.roas-a.roas).slice(0,3);return"Top channels by ROAS:<br>"+b.map(c=>`<b>${c.n}</b> ${c.roas.toFixed(1)}x · CAC $${N(c.cac)} · deal ${M(c.deal)}`).join("<br>")},
+budget:()=>{const u=C[1].sp*1000*.3+C[6].sp*1000*.3;return`Move ~30% of Meta + Affiliates budget (≈${M(u)}) into LinkedIn, Webinars and SEO. With a 35% diminishing-returns haircut, projected gain ≈ <b>${M(u*(S("rev",[C[2],C[5],C[4]])/(S("sp",[C[2],C[5],C[4]])*1000)*.65-S("rev",[C[1],C[6]])/(S("sp",[C[1],C[6]])*1000)))}</b>. Try it in the simulator.`},
+attr:()=>{const f=share("first"),l=share("last");const d=C.map((c,i)=>[c.n,f[i]-l[i]]).sort((a,b)=>b[1]-a[1]);return`First-touch credits <b>${d[0][0]}</b> with ${M(d[0][1])} more than last-touch, while <b>${d[d.length-1][0]}</b> loses ${M(-d[d.length-1][1])}. Awareness channels open journeys that Email/SEO close — use position-based credit for budget decisions.`},
+cac:()=>"CAC by channel:<br>"+[...C].sort((a,b)=>a.cac-b.cac).map(c=>`${c.n}: <b>$${N(c.cac)}</b>`).join(" · "),
+sum:()=>`Leads: <b>${N(S("leads"))}</b>, revenue <b>${M(S("rev"))}</b>, spend <b>${M(S("sp")*1000)}</b>. Only <b>${P(S("won")/S("leads"))}</b> of leads become customers. Root cause: lead <i>volume</i> is coming from low-intent channels, and MQL→SQL handoff is the weakest stage. Estimated recoverable value: <b>${M(S("loss"))}</b>.`,
+act:()=>"Action plan:<br>1️⃣ Rebalance 30% of Meta/Affiliate budget to high-ROAS channels<br>2️⃣ Redefine MQL with behavioural + firmographic scoring<br>3️⃣ Add a 24-hr sales follow-up SLA<br>4️⃣ Move to position-based attribution for budgeting<br>5️⃣ Track pipeline $ not lead count as the KPI"};
+function agent(q){q=q.toLowerCase();if(/lose|leak|drop|bottleneck|stage|lost/.test(q))return ans.leak();if(/worst|poor|bad|low|waste|cut/.test(q))return ans.worst();if(/best|top|good|roas/.test(q))return ans.best();if(/budget|realloc|shift|invest/.test(q))return ans.budget();if(/attrib|touch|credit|model/.test(q))return ans.attr();if(/cac|cost/.test(q))return ans.cac();if(/action|recommend|fix|plan|do/.test(q))return ans.act();if(/summar|overview|why|problem|status/.test(q))return ans.sum();
+for(const c of C)if(q.includes(c.n.toLowerCase().split(" ")[0]))return`<b>${c.n}</b>: ${N(c.leads)} leads → ${N(c.won)} customers (${P(c.won/c.leads)}). Revenue ${M(c.rev)}, ROAS ${c.roas.toFixed(2)}x, CAC $${N(c.cac)}, leakage ${M(c.loss)}. Weakest stage: ${SN[c.r.map((r,i)=>r/B[i]).indexOf(Math.min(...c.r.map((r,i)=>r/B[i])))]}.`;return"I can analyse leakage, channel ROAS/CAC, attribution models, budget shifts and action plans. Try one of the suggested questions, or name a channel."}
+function say(t,u){const d=document.createElement("div");d.className="m "+(u?"u":"a");$("#msgs").appendChild(d);if(u){d.textContent=t}else{d.innerHTML="<i>Analysing funnel data…</i>";setTimeout(()=>{d.innerHTML=t;$("#msgs").scrollTop=1e9},500)}$("#msgs").scrollTop=1e9}
+function ask(t){if(!t.trim())return;say(t,1);say(agent(t));$("#q").value=""}
+$("#go").onclick=()=>ask($("#q").value);$("#q").onkeydown=e=>{if(e.key==="Enter")ask(e.target.value)};
+$("#sug").innerHTML=["Summarise the problem","Where are we losing revenue?","Which channel is worst?","How should I shift budget?","Compare attribution models","Give me an action plan","Tell me about LinkedIn"].map(s=>`<button class="chip" data-s="${s}">${s}</button>`).join("");
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>ask(b.dataset.s));
+["s1","s2","s3"].forEach(i=>$("#"+i).oninput=sim);
+function render(){chips();kpis();funnel();heat();loss();attr();eff()}
+render();trend();mt();sim();insights();say("Hi, I’m the RevenueLens agent. Leads are up 77% but revenue only 7% — I’ve traced the journey and found where value leaks. Ask me anything.");
+</script></body></html>
